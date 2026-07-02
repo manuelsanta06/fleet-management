@@ -47,6 +47,54 @@ Future<void> updateFullEventState(AppDatabase db,Event eve)async{
   ));
 }
 
+
+class EventFilter extends StatelessWidget{
+  final ViewFilter currentFilter;
+  final ValueChanged<ViewFilter> onChanged;
+  final Color mainColor;
+
+  const EventFilter({
+    super.key,
+    required this.currentFilter,
+    required this.onChanged,
+    required this.mainColor,
+  });
+
+  @override
+  Widget build(BuildContext context){
+    return Padding(
+      padding:const EdgeInsets.symmetric(vertical:8),
+      child: SegmentedButton<ViewFilter>(
+        showSelectedIcon:false,
+        segments:const[
+          ButtonSegment<ViewFilter>(
+            value: ViewFilter.all,
+            label: Text("Todo"),
+          ),
+          ButtonSegment<ViewFilter>(
+            value: ViewFilter.trips,
+            label: Text("Viajes"),
+          ),
+          ButtonSegment<ViewFilter>(
+            value: ViewFilter.school,
+            label: Text("Recorridos"),
+          ),
+        ],
+        selected:{currentFilter},
+        onSelectionChanged:(Set<ViewFilter> newSelection){
+          onChanged(newSelection.first);
+        },
+        style:SegmentedButton.styleFrom(
+          side:BorderSide(color:mainColor),
+          selectedBackgroundColor: mainColor,
+          selectedForegroundColor: Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+
 class EventCard extends StatelessWidget{
   final Event eve;
   final List<Stop> sto;
@@ -220,6 +268,7 @@ class EventCard extends StatelessWidget{
   }
 }
 
+
 Future<bool> showCreateTripSheet(BuildContext context,{
   Event? event,
   List<Stop>? stops,
@@ -339,6 +388,7 @@ Future<bool> showCreateTripSheet(BuildContext context,{
     return false;
   }
 }
+
 
 class TempStop{
   String? originalId;

@@ -28,7 +28,7 @@ class homePage extends StatefulWidget {
 }
 class _homePageState extends State<homePage>{
   final GlobalKey<ExpandableFabState> _fabKey = GlobalKey<ExpandableFabState>();
-  bool recorridosToday=false;
+  ViewFilter eventsFilter=ViewFilter.all;
   bool _showSettings=false;
 
 
@@ -96,23 +96,16 @@ class _homePageState extends State<homePage>{
               ])
             ),
             const SizedBox(height:20),
-            Row(children:[
-              Expanded(child:subtitleLine("Viajes hoy",homePage.mainColor)),
-              Text(
-                  "Recorridos",
-                  style:TextStyle(fontSize:16, fontWeight:recorridosToday?FontWeight.bold:FontWeight.normal),
-                ),
-                Switch(
-                  value:recorridosToday,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor:homePage.mainColor,
-                  onChanged:(bool value){
-                    setState((){recorridosToday=value;});
-                  }
-                )
-            ]),
+            subtitleLine("Viajes hoy",homePage.mainColor),
+            EventFilter(
+              currentFilter:eventsFilter,
+              mainColor:homePage.mainColor,
+              onChanged:(ViewFilter newFilter){
+                setState((){eventsFilter=newFilter;});
+              },
+            ),
             StreamBuilder<List<EventWithStops>>(
-              stream:deafDb.watchEventsWithStops(DateTime.now(),recorridosToday),
+              stream:deafDb.watchEventsWithStops(DateTime.now(),eventsFilter),
               builder:(context,snapshot){
                 if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
                 if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());

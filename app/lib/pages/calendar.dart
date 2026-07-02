@@ -33,7 +33,7 @@ class calendarPage extends StatefulWidget {
 
 class _calendarPageState extends State<calendarPage>{
   String searchQuery = "";
-  bool recorridos=false;
+  ViewFilter eventsFilter=ViewFilter.all;
 
   final GlobalKey<ExpandableFabState> _fabKey = GlobalKey<ExpandableFabState>();
   DateTime _focusedDay = DateTime.now(), _selectedDay=DateTime.now();
@@ -60,25 +60,14 @@ class _calendarPageState extends State<calendarPage>{
         children:[
           // main page
           SafeArea(child:Column(children:[
-            mySearchBar(onChanged:(value){setState((){searchQuery = value;});},),
-            Container(
-              margin:const EdgeInsets.symmetric(horizontal: 10),
-              child:Row(children: [
-                Expanded(child: Text(
-                  "Recorridos",
-                  style:TextStyle(fontSize:16, fontWeight:recorridos?FontWeight.bold:FontWeight.normal),
-                )),
-                Switch(
-                  value: recorridos,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor:calendarPage.mainColor,
-                  onChanged:(bool value){
-                    setState((){recorridos=value;});
-                  }
-                )
-              ])
+            mySearchBar(onChanged:(value){setState((){searchQuery=value;});}),
+            EventFilter(
+              currentFilter:eventsFilter,
+              mainColor:calendarPage.mainColor,
+              onChanged:(ViewFilter newFilter){
+                setState((){eventsFilter=newFilter;});
+              },
             ),
-
             TableCalendar(
               focusedDay: _focusedDay,
               firstDay: constants.firstDate,
@@ -128,7 +117,7 @@ class _calendarPageState extends State<calendarPage>{
 
             Expanded(
               child:StreamBuilder<List<EventWithStops>>(
-                stream: db.watchEventsWithStops(_selectedDay,recorridos),
+                stream: db.watchEventsWithStops(_selectedDay,eventsFilter),
                 builder:(context, snapshot){
                   if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
                   if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
