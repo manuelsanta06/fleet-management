@@ -101,6 +101,16 @@ Future<void> removeChoferDialog(BuildContext context, Chofer chofe,bool restaura
   );
 }
 
+String choferPrettyName(Chofer chofe){
+  return (chofe.alias?.isNotEmpty??false)?
+    chofe.alias!
+    :'${chofe.name?.split(" ").first??""} ${chofe.surname?.split(" ").first??""}';
+}
+String choferShortName(Chofer chofe){
+  if((chofe.alias??"").isNotEmpty)return chofe.alias!;
+  if((chofe.name??"").isNotEmpty)return chofe.name!;
+  return chofe.surname!;
+}
 
 Widget choferToCard(
   BuildContext context,
@@ -214,9 +224,7 @@ Widget choferToCard(
             crossAxisAlignment: CrossAxisAlignment.start,
             children:[
               Text(
-                (chofe.alias?.isNotEmpty??false)?
-                  chofe.alias!
-                  :'${chofe.name?.split(" ").first??""} ${chofe.surname?.split(" ").first??""}',
+                choferPrettyName(chofe),
                 style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w600,),
               ),
               Column(

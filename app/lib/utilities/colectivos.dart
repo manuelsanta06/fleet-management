@@ -283,6 +283,11 @@ Future<void> removeColectivoDialog(BuildContext context,Colectivo bus,bool resta
   );
 }
 
+String colectivoPrettyName(Colectivo cole){
+  return (cole.name??"").isEmpty?cole.plate:cole.name!;
+}
+
+
 
 
 Widget colectivoToCard(

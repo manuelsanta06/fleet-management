@@ -637,6 +637,20 @@ class AppDatabase extends _$AppDatabase{
   }
 
 
+  Stream<List<Colectivo>> watchAssignedColectivos(String eventId){
+    final query=select(colectivos).join([
+      innerJoin(eventColectivos,eventColectivos.colectivoId.equalsExp(colectivos.id))
+    ]);
+    query.where(eventColectivos.eventId.equals(eventId));
+    return query.watch().map((rows)=>rows.map((r)=>r.readTable(colectivos)).toList());
+  }
+  Stream<List<Chofere>> watchAssignedChoferes(String eventId){
+    final query=select(choferes).join([
+      innerJoin(eventChoferes,eventChoferes.choferId.equalsExp(choferes.id))
+    ]);
+    query.where(eventChoferes.eventId.equals(eventId));
+    return query.watch().map((rows)=>rows.map((r)=>r.readTable(choferes)).toList());
+  }
   Future<List<(Colectivo, bool)>> getColectivosWithAvailability(
     DateTime start, 
     DateTime end, 
@@ -683,10 +697,10 @@ class AppDatabase extends _$AppDatabase{
     return result;
   }
   Stream<List<(Colectivo, bool)>> watchColectivosAvailability(
-    DateTime start, 
-    DateTime end, 
+    DateTime start,
+    DateTime end,
     String? excludedEventId,
-    {String? onlyForEventId}) {
+    {String? onlyForEventId}){
     final triggerQuery=select(eventColectivos).join([
       innerJoin(events, events.id.equalsExp(eventColectivos.eventId)),
       innerJoin(colectivos, colectivos.id.equalsExp(eventColectivos.colectivoId))
@@ -759,7 +773,7 @@ class AppDatabase extends _$AppDatabase{
   Stream<List<EventWithStops>> watchEventsWithStops(DateTime day,ViewFilter filter){
     final startOfDay=DateTime(day.year, day.month, day.day);
     final endOfDay=startOfDay.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
-    final weekdayIndex=day.weekday.toString();
+    final now=DateTime.now().subtract(Duration(hours:1));
 
     final query=select(events).join([
       leftOuterJoin(stops, stops.eventId.equalsExp(events.id)),
@@ -774,13 +788,12 @@ class AppDatabase extends _$AppDatabase{
 
     query.where(
       typeFilter&
-      events.state.equalsValue(EventStates.REMOVED).not()&(
-        (events.repeat.equals(false)&events.startDateTime.isBetweenValues(startOfDay,endOfDay))|
-        (events.repeat.equals(true)&events.startDateTime.isSmallerOrEqualValue(endOfDay)&events.days.cast<String>().like('%$weekdayIndex%'))
-      )
+      events.state.equalsValue(EventStates.REMOVED).not()&
+      (events.repeat.equals(false)&events.startDateTime.isBetweenValues(startOfDay,endOfDay))
     );
 
     query.orderBy([
+      OrderingTerm.asc(events.endDateTime.isSmallerThanValue(now)),
       OrderingTerm.asc(events.startDateTime),
       OrderingTerm.asc(stops.orderIndex),
     ]);

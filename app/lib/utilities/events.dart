@@ -1,5 +1,6 @@
 import 'package:agenda/database/app_database.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,7 +13,8 @@ import 'package:agenda/widgets/cards.dart';
 
 import 'package:agenda/utilities/parsers.dart';
 import 'package:agenda/utilities/syncService.dart';
-import 'package:agenda/utilities/debts.dart';
+import 'package:agenda/utilities/choferes.dart';
+import 'package:agenda/utilities/colectivos.dart';
 
 Future<EventStates> getEventCompletitionState(AppDatabase db,Event eve)async{
   final colectivosCount = await (db.select(db.eventColectivos)
@@ -122,9 +124,20 @@ class EventCard extends StatelessWidget{
       MaterialPageRoute(builder:(context)=>eventInfo(defColor:maincolor,initialEvent:eve,sto:sto)),
     );
   }
+  Widget _buildPill(String text){
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+    );
+  }
 
   @override
   Widget build(BuildContext context){
+    final db=Provider.of<AppDatabase>(context,listen:false);
     Color? colo;
     if(eve.state==EventStates.REMOVED)colo=Colors.red.withValues(alpha:0.3);
     else if(eve.state==EventStates.INCOMPLETE)colo=Color.fromARGB(175,255,92,0);
@@ -241,7 +254,7 @@ class EventCard extends StatelessWidget{
         child:Padding(padding:const EdgeInsets.all(14),child:Column(
           crossAxisAlignment:CrossAxisAlignment.start,
           children:[
-            Text( eve.name,
+            Text(eve.name,
               overflow:TextOverflow.ellipsis,
               style:TextStyle(
                 fontWeight: FontWeight.bold,
@@ -258,9 +271,52 @@ class EventCard extends StatelessWidget{
               
             if(eve.days!=null&&(eve.days?.isNotEmpty??false))
             weekDaysDots(eve.days,maincolor),
-            if(eve.type!=EventTypes.NONE||sto.isNotEmpty)
-            stopsLineHorizontal(sto,eve.repeat,maincolor),
-
+            //if(eve.type!=EventTypes.NONE||sto.isNotEmpty)
+            //stopsLineHorizontal(sto,eve.repeat,maincolor),
+            Divider(color:Colors.white),
+            Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.center,children:[
+                const Text("COLECTIVOS",style:TextStyle(fontSize:10,fontWeight: FontWeight.bold)),
+                const SizedBox(height:6),
+                StreamBuilder<List<Colectivo>>(
+                  stream:db.watchAssignedColectivos(eve.id),
+                  builder:(context,snapshot){
+                    if(!snapshot.hasData)
+                      return const SizedBox(height:20,width:20,child:CircularProgressIndicator(strokeWidth: 2));
+                    final buses=snapshot.data!;
+                    if(buses.isEmpty)
+                      return const Text("Sin asignar",style:TextStyle(color:Colors.redAccent,fontSize:12,fontStyle:FontStyle.italic,fontWeight:FontWeight.bold));
+                    return Wrap(
+                      alignment:WrapAlignment.center,
+                      runSpacing:6,
+                      spacing:6,
+                      children:buses.map((b)=>_buildPill(colectivoPrettyName(b))).toList(),
+                    );
+                  },
+                ),
+              ])),
+              const SizedBox(width: 12),
+              Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.center,children:[
+                const Text("CHOFERES",style:TextStyle(fontSize:10,fontWeight: FontWeight.bold)),
+                const SizedBox(height:6),
+                StreamBuilder<List<Chofere>>(
+                  stream: db.watchAssignedChoferes(eve.id),
+                  builder:(context,snapshot){
+                    if(!snapshot.hasData)
+                      return const SizedBox(height:20,width:20,child:CircularProgressIndicator(strokeWidth:2));
+                    final drivers=snapshot.data!;
+                    if(drivers.isEmpty)
+                      return const Text("Sin asignar", style: TextStyle(color: Colors.redAccent, fontSize: 12, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold));
+                    return Wrap(
+                      alignment:WrapAlignment.center,
+                      runSpacing:6,
+                      spacing:6,
+                      children:drivers.map((d)=>_buildPill(choferShortName(d))).toList(),
+                    );
+                  },
+                ),
+              ])),
+            ]),
           ]
         )),
       ),
