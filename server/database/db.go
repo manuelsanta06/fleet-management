@@ -526,12 +526,13 @@ type activeTemplate struct {
   RecorridoID   string
 	Data          string
   BusAmount     int
+  State         int
 }
 
-func RecorridoShiftPopulationRoutine() error {
+func RecorridoShiftPopulationRoutine()error{
 	ctx := context.Background()
 	queryTemplates:=`
-		SELECT e.id,e.days,e.start_date_time,e.end_date_time,e.name,r.name,e.recorrido_id,e.data,e.bus_amount
+		SELECT e.id,e.days,e.start_date_time,e.end_date_time,e.name,r.name,e.recorrido_id,e.data,e.bus_amount,e.state
 		FROM events e
 		JOIN recorridos r ON e.recorrido_id = r.id
 		WHERE e.type = 4 AND e.state != 1 AND r.is_active = TRUE
@@ -546,7 +547,7 @@ func RecorridoShiftPopulationRoutine() error {
 	for rows.Next(){
 		var t activeTemplate
 		var daysPtr *string
-		if err:=rows.Scan(&t.ID,&daysPtr,&t.StartTime,&t.EndTime,&t.Name,&t.RecorridoName,&t.RecorridoID,&t.Data,&t.BusAmount);err!=nil{
+		if err:=rows.Scan(&t.ID,&daysPtr,&t.StartTime,&t.EndTime,&t.Name,&t.RecorridoName,&t.RecorridoID,&t.Data,&t.BusAmount,&t.State);err!=nil{
 			return fmt.Errorf("error leyendo template: %w",err)
 		}
 		if daysPtr!=nil{
@@ -598,11 +599,11 @@ func RecorridoShiftPopulationRoutine() error {
 			endDT:=time.Date(targetDate.Year(),targetDate.Month(),targetDate.Day(),
 				template.EndTime.Hour(),template.EndTime.Minute(),template.EndTime.Second(), 0,time.UTC)
 
-insertEventQuery:=`
+      insertEventQuery:=`
 				INSERT INTO events (id, name, data, bus_amount, start_date_time, end_date_time, state, type, is_trip, shift_id, recorrido_id)
-				VALUES ($1, $2, $3, $4, $5, $6, 0, 3, true, $7, $8)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, 3, true, $8, $9)
 			`
-			_,err=tx.Exec(ctx,insertEventQuery,eventID,template.RecorridoName+" - "+template.Name,template.Data,template.BusAmount,startDT,endDT,template.ID,template.RecorridoID)
+			_,err=tx.Exec(ctx,insertEventQuery,eventID,template.RecorridoName+" - "+template.Name,template.Data,template.BusAmount,startDT,endDT,template.State,template.ID,template.RecorridoID)
 			if err!=nil{
 				return fmt.Errorf("error insertando evento base: %w", err)
 			}
