@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../pages/eventInfo.dart';
+import 'package:intl/intl.dart';
 
 import 'package:agenda/widgets/timeinputs.dart';
 import 'package:agenda/widgets/eventDetails.dart';
@@ -261,13 +262,23 @@ class EventCard extends StatelessWidget{
                 fontSize: 16.0,
               ),
             ),
-            Text( eventTypeToString(eve.type),
-              style:TextStyle(
-                color: maincolor,
-                fontWeight: FontWeight.w900,
-                fontSize: 10.0,
+            Row(children:[
+              Text(eventTypeToString(eve.type),
+                style:TextStyle(
+                  color: maincolor,
+                  fontWeight:FontWeight.w900,
+                  fontSize:10.0,
+                ),
               ),
-            ),
+              Expanded(child:SizedBox()),
+              Text("${DateFormat('HH:mm').format(eve.startDateTime)} - ${DateFormat('HH:mm').format(eve.startDateTime)}",
+                style:TextStyle(
+                  color: maincolor,
+                  fontWeight:FontWeight.w900,
+                  fontSize:10.0,
+                ),
+              )
+            ]),
               
             if(eve.days!=null&&(eve.days?.isNotEmpty??false))
             weekDaysDots(eve.days,maincolor),
