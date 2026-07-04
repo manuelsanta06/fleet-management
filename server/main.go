@@ -29,7 +29,7 @@ func main() {
   mux.HandleFunc("POST /scheduler/toggle/shifts",handlers.ToggleShiftsSchedulerHandler)
 	mux.HandleFunc("POST /scheduler/toggle/debts",handlers.ToggleDebtsSchedulerHandler)
 
-  mux.HandleFunc("POST /maintenance/checkstates",handlers.FixFutureEventsStateHandler)
+  mux.HandleFunc("POST /maintenance/checkstates",handlers.UpdateEventStatesHandler)
 
 	fmt.Println("Servidor corriendo en http://localhost:8080 ...")
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080",mux))

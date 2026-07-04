@@ -8,7 +8,7 @@ import (
 	"github.com/manuelsanta06/agenda/database"
 )
 
-func FixFutureEventsStateHandler(w http.ResponseWriter,r *http.Request){
+func UpdateEventStatesHandler(w http.ResponseWriter,r *http.Request){
 	apiSecret:=os.Getenv("API_SECRET")
 	authHeader:=r.Header.Get("Authorization")
 	if authHeader!="Bearer "+apiSecret{
@@ -25,12 +25,12 @@ func FixFutureEventsStateHandler(w http.ResponseWriter,r *http.Request){
 		}
 	}
 
-	err:=database.FixFutureEventsStateRoutine(targetDate)
+	err:=database.UpdateEventStatesRoutine(targetDate)
 	if err!=nil{
 		http.Error(w,err.Error(),http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status": "ok", "mensaje": "estados de viajes corregidos"}`))
+	w.Write([]byte(`{"status": "ok", "mensaje": "estados de eventos recalculados y actualizados"}`))
 }

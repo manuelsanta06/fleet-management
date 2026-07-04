@@ -735,24 +735,42 @@ func MonthlyDebtPopulationRoutine() error {
 	return nil
 }
 
-func FixFutureEventsStateRoutine(startDate time.Time)error{
+func UpdateEventStatesRoutine(startDate time.Time)error{
 	ctx:=context.Background()
 	
 	query:=`
+		WITH EventStats AS (
+			SELECT e.id, e.state AS old_state, e.bus_amount, e.start_date_time, e.end_date_time,
+				(SELECT COUNT(*) FROM event_colectivos WHERE event_id = e.id) AS col_count,
+				(SELECT COUNT(*) FROM event_choferes WHERE event_id = e.id) AS chof_count
+			FROM events e
+			WHERE e.start_date_time >= $1 AND e.state != 1 AND e.type != 4
+		),
+		CalculatedStates AS (
+			SELECT id, old_state,
+				CASE
+					-- INCOMPLETE (5)
+					WHEN col_count = 0 OR chof_count = 0 OR col_count < bus_amount OR chof_count != col_count THEN 5
+					-- DONE (2)
+					WHEN NOW() > end_date_time THEN 2
+					-- HAPPENING (6)
+					WHEN NOW() > start_date_time AND NOW() < end_date_time THEN 6
+					-- PENDING (3)
+					ELSE 3
+				END AS new_state
+			FROM EventStats
+		)
 		UPDATE events e
-		SET state = parent.state, updated_at = CURRENT_TIMESTAMP
-		FROM events parent
-		WHERE e.shift_id = parent.id 
-		  AND e.type = 3 
-		  AND e.start_date_time >= $1
-		  AND e.state != parent.state;
+		SET state = cs.new_state, updated_at = CURRENT_TIMESTAMP
+		FROM CalculatedStates cs
+		WHERE e.id = cs.id AND cs.old_state != cs.new_state;
 	`
 	
 	cmdTag,err:=DB.Exec(ctx,query,startDate)
 	if err!=nil{
-		return fmt.Errorf("error actualizando estados de eventos hijos: %w",err)
+		return fmt.Errorf("error recalculando estados de eventos: %w",err)
 	}
 	
-	fmt.Printf("Mantenimiento: %d viajes actualizados desde %v.\n",cmdTag.RowsAffected(),startDate.Format("2006-01-02"))
+	fmt.Printf("Mantenimiento: %d eventos recalcularon su estado desde %v.\n",cmdTag.RowsAffected(),startDate.Format("2006-01-02"))
 	return nil
 }
