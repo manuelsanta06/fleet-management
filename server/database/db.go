@@ -735,3 +735,24 @@ func MonthlyDebtPopulationRoutine() error {
 	return nil
 }
 
+func FixFutureEventsStateRoutine(startDate time.Time)error{
+	ctx:=context.Background()
+	
+	query:=`
+		UPDATE events e
+		SET state = parent.state, updated_at = CURRENT_TIMESTAMP
+		FROM events parent
+		WHERE e.shift_id = parent.id 
+		  AND e.type = 3 
+		  AND e.start_date_time >= $1
+		  AND e.state != parent.state;
+	`
+	
+	cmdTag,err:=DB.Exec(ctx,query,startDate)
+	if err!=nil{
+		return fmt.Errorf("error actualizando estados de eventos hijos: %w",err)
+	}
+	
+	fmt.Printf("Mantenimiento: %d viajes actualizados desde %v.\n",cmdTag.RowsAffected(),startDate.Format("2006-01-02"))
+	return nil
+}
