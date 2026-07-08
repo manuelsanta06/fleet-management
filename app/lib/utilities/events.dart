@@ -271,7 +271,7 @@ class EventCard extends StatelessWidget{
                 ),
               ),
               Expanded(child:SizedBox()),
-              Text("${DateFormat('HH:mm').format(eve.startDateTime)} - ${DateFormat('HH:mm').format(eve.startDateTime)}",
+              Text("${DateFormat('HH:mm').format(eve.startDateTime)} - ${DateFormat('HH:mm').format(eve.endDateTime)}",
                 style:TextStyle(
                   color: maincolor,
                   fontWeight:FontWeight.w900,

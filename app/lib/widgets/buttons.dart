@@ -41,7 +41,7 @@ Widget buildMiniFab(
 /// a FAB that expands, showing a list of childrens (usually [buildMiniFab]).
 /// Has to be inside a [Stack] for the black background (scrim) to work
 /// and inside a [Positioned.fill] to allow the black background to cover the full screen.
-class ExpandableFab extends StatefulWidget {
+class ExpandableFab extends StatefulWidget{
   final List<Widget> children;
   final Color mainColor;
   final double distance;
@@ -171,27 +171,36 @@ class ExpandableFabState extends State<ExpandableFab> with SingleTickerProviderS
   @override
   Widget build(BuildContext context) {
     return Stack(
-      //alignment: Alignment.bottomRight,
       fit: StackFit.expand,
       children: [
-        if (_isMenuOpen)
-          Positioned.fill(
-            child: FadeTransition(
-              opacity: _scrimFadeAnimation,
-              child: GestureDetector(
-                onTap: toggleMenu,
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
+        // FONDO OSCURO (SCRIM)
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring:!_isMenuOpen,
+            child:FadeTransition(
+              opacity:_scrimFadeAnimation,
+              child:GestureDetector(
+                onTap:toggleMenu,
+                child:Container(
+                  color:Colors.black.withOpacity(0.5),
                 ),
               ),
             ),
           ),
+        ),
+        
+        // BOTONES
         Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (_isMenuOpen) _buildButtonColumn(),
+          mainAxisSize:MainAxisSize.min,
+          mainAxisAlignment:MainAxisAlignment.end,
+          crossAxisAlignment:CrossAxisAlignment.end,
+          children:[
+            // BOTONES PEQUEÑOS
+            IgnorePointer(
+              ignoring:!_isMenuOpen,
+              child:_buildButtonColumn(),
+            ),
+            // FAB PRINCIPAL
             _buildMainFab(),
           ],
         ),
