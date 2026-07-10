@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:agenda/widgets/searchBar.dart';
 import 'package:agenda/widgets/buttons.dart';
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/errorWidgets.dart';
 
 import 'package:agenda/utilities/events.dart';
@@ -117,7 +118,7 @@ class _calendarPageState extends State<calendarPage>{
 
             Expanded(child:StreamBuilder<List<EventWithStops>>(
               stream: db.watchEventsWithStops(_selectedDay,eventsFilter),
-              builder:(context, snapshot){
+              builder:(context,snapshot){
                 if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
                 if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
                 final fullList=snapshot.data??List<EventWithStops>.empty();
@@ -130,29 +131,13 @@ class _calendarPageState extends State<calendarPage>{
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 80),
-                  child: LayoutBuilder(
-                    builder:(context,constraints){
-                      const double minCardWidth=350.0;
-                      int columns=(constraints.maxWidth/minCardWidth).floor();
-                      if(columns<1)columns=1;
-                      final double exactCardWidth=constraints.maxWidth/columns;
-
-                      return Wrap(
-                        spacing:0,
-                        runSpacing:0,
-                        children:fullList.map((item){
-                          return SizedBox(
-                            width:exactCardWidth,
-                            child:EventCard(
-                              eve:item.event,
-                              sto:item.stops,
-                              maincolor:calendarPage.mainColor,
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
+                  child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:filtered.map((item){
+                    return EventCard(
+                      eve:item.event,
+                      sto:item.stops,
+                      maincolor:calendarPage.mainColor,
+                    );
+                  }).toList()),
                 );
 
               },

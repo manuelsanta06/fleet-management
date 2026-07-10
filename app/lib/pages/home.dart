@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/buttons.dart';
 import 'package:agenda/widgets/cards.dart';
 import 'package:agenda/widgets/text.dart';
@@ -114,29 +115,13 @@ class _homePageState extends State<homePage>{
 
                 return BasicCard(
                   padding:EdgeInsetsGeometry.symmetric(vertical:8,horizontal:0),
-                  child:LayoutBuilder(
-                    builder:(context,constraints){
-                      const double minCardWidth=350.0;
-                      int columns=(constraints.maxWidth/minCardWidth).floor();
-                      if(columns<1)columns=1;
-                      final double exactCardWidth=constraints.maxWidth/columns;
-
-                      return Wrap(
-                        spacing:0,
-                        runSpacing:0,
-                        children:fullList.map((item){
-                          return SizedBox(
-                            width:exactCardWidth,
-                            child:EventCard(
-                              eve:item.event,
-                              sto:item.stops,
-                              maincolor:homePage.mainColor,
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
+                  child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:fullList.map((item){
+                    return EventCard(
+                      eve:item.event,
+                      sto:item.stops,
+                      maincolor:homePage.mainColor,
+                    );
+                  }).toList()),
                 );
               },
             ),
