@@ -35,13 +35,18 @@ class _recorridosPage extends State<recorridosPage>{
           builder:(context, snapshot){
             if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
             if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
-            //return const Center(child: CircularProgressIndicator());
-            final recorridos=snapshot.data!;
-            recorridos.sort((a, b) {
+            var recorridos=snapshot.data!;
+            if(searchQuery.isNotEmpty){
+              recorridos=recorridos.where((r)=> 
+                r.name.toLowerCase().contains(searchQuery.toLowerCase())
+              ).toList();
+            }
+            recorridos.sort((a,b){
               if(a.pinned&&!b.pinned)return -1;
               if(!a.pinned && b.pinned)return 1;
               return a.name.compareTo(b.name);
             });
+
             final activos=recorridos.where((r)=>r.isActive).toList();
             final inactivos=recorridos.where((r)=>!r.isActive).toList();
 
