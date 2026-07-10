@@ -111,16 +111,32 @@ class _homePageState extends State<homePage>{
                 if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
                 final fullList=snapshot.data??[];
                 if(fullList.isEmpty)return const Center(child:Text("Nada por aca"));
+
                 return BasicCard(
                   padding:EdgeInsetsGeometry.symmetric(vertical:8,horizontal:0),
-                  child:Column(children:[
-                    ...fullList.map((e){
-                      return EventCard(
-                        eve:e.event,sto:e.stops,
-                        maincolor:homePage.mainColor,
+                  child:LayoutBuilder(
+                    builder:(context,constraints){
+                      const double minCardWidth=350.0;
+                      int columns=(constraints.maxWidth/minCardWidth).floor();
+                      if(columns<1)columns=1;
+                      final double exactCardWidth=constraints.maxWidth/columns;
+
+                      return Wrap(
+                        spacing:0,
+                        runSpacing:0,
+                        children:fullList.map((item){
+                          return SizedBox(
+                            width:exactCardWidth,
+                            child:EventCard(
+                              eve:item.event,
+                              sto:item.stops,
+                              maincolor:homePage.mainColor,
+                            ),
+                          );
+                        }).toList(),
                       );
-                    })
-                  ])
+                    },
+                  ),
                 );
               },
             ),
@@ -129,7 +145,7 @@ class _homePageState extends State<homePage>{
             bottom:16.0,
             right:16.0,
             child:ExpandableFab(
-            key:_fabKey,
+              key:_fabKey,
               mainColor:homePage.mainColor,
               children:[
                 buildMiniFab(homePage.mainColor,

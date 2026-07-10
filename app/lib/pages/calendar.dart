@@ -32,7 +32,7 @@ class calendarPage extends StatefulWidget {
 
 
 class _calendarPageState extends State<calendarPage>{
-  String searchQuery = "";
+  String searchQuery="";
   ViewFilter eventsFilter=ViewFilter.all;
 
   final GlobalKey<ExpandableFabState> _fabKey = GlobalKey<ExpandableFabState>();
@@ -40,7 +40,7 @@ class _calendarPageState extends State<calendarPage>{
   CalendarFormat _calendarFormat=CalendarFormat.week;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
   }
 
@@ -50,16 +50,16 @@ class _calendarPageState extends State<calendarPage>{
   }
 
   @override
-  Widget build(BuildContext context) {
-    final db = Provider.of<AppDatabase>(context);
-    final deafDb=Provider.of<AppDatabase>(context, listen: false);
+  Widget build(BuildContext context){
+    final db=Provider.of<AppDatabase>(context);
+    final deafDb=Provider.of<AppDatabase>(context,listen:false);
 
     return Scaffold(
       body:Stack(
         fit:StackFit.expand,
         children:[
           // main page
-          SafeArea(child:Column(children:[
+          SafeArea(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
             mySearchBar(onChanged:(value){setState((){searchQuery=value;});}),
             EventFilter(
               currentFilter:eventsFilter,
@@ -115,37 +115,49 @@ class _calendarPageState extends State<calendarPage>{
 
             const SizedBox(height: 8.0),
 
-            Expanded(
-              child:StreamBuilder<List<EventWithStops>>(
-                stream: db.watchEventsWithStops(_selectedDay,eventsFilter),
-                builder:(context, snapshot){
-                  if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
-                  if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
+            Expanded(child:StreamBuilder<List<EventWithStops>>(
+              stream: db.watchEventsWithStops(_selectedDay,eventsFilter),
+              builder:(context, snapshot){
+                if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
+                if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
+                final fullList=snapshot.data??List<EventWithStops>.empty();
+                final filtered=searchQuery.isEmpty
+                  ?fullList
+                  :fullList.where((c){
+                    return (c.event.name.toLowerCase().contains(searchQuery.toLowerCase()));
+                  }).toList();
+                if(filtered.isEmpty)return const Center(child:Text("Nada por aca"));
 
-                  final fullList =snapshot.data??List<EventWithStops>.empty();
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: LayoutBuilder(
+                    builder:(context,constraints){
+                      const double minCardWidth=350.0;
+                      int columns=(constraints.maxWidth/minCardWidth).floor();
+                      if(columns<1)columns=1;
+                      final double exactCardWidth=constraints.maxWidth/columns;
 
-                  final filtered = searchQuery.isEmpty
-                    ? fullList
-                    : fullList.where((c){
-                      return (c.event.name.toLowerCase().contains(searchQuery.toLowerCase()));
-                    }).toList();
-                  if(filtered.isEmpty)return const Center(child:Text("???"));
-
-                  return ListView.builder(
-                    itemCount: filtered.length,
-                    itemBuilder:(context, index){
-                      return EventCard(
-                        eve:filtered[index].event,
-                        sto:filtered[index].stops,
-                        maincolor:calendarPage.mainColor,
+                      return Wrap(
+                        spacing:0,
+                        runSpacing:0,
+                        children:fullList.map((item){
+                          return SizedBox(
+                            width:exactCardWidth,
+                            child:EventCard(
+                              eve:item.event,
+                              sto:item.stops,
+                              maincolor:calendarPage.mainColor,
+                            ),
+                          );
+                        }).toList(),
                       );
                     },
-                  );
+                  ),
+                );
 
-                },
-              )
-            ),
-          ],),),
+              },
+            )),
+          ])),
 
           // Floatting buttons
           Positioned.fill(
@@ -155,13 +167,6 @@ class _calendarPageState extends State<calendarPage>{
               key:_fabKey,
               mainColor: calendarPage.mainColor,
               children: [
-                //buildMiniFab(calendarPage.mainColor,
-                //  icon: Icons.school,
-                //  label: "Recorrido",
-                //  onPressed:(){
-                //    _fabKey.currentState?.toggleMenu();
-                //  },//TODO
-                //),
                 buildMiniFab(calendarPage.mainColor,
                   icon: Icons.directions_bus,
                   label: "Viaje",
@@ -208,4 +213,3 @@ class _calendarPageState extends State<calendarPage>{
     );
   }
 }
-
