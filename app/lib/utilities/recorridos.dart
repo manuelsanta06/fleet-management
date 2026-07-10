@@ -49,7 +49,7 @@ Widget recorridoToCard(BuildContext context,Color mainColor,Recorrido reco,VoidC
         ),
       ],
     ),
-    margin: const EdgeInsets.symmetric(vertical:8, horizontal:10),
+    //margin: const EdgeInsets.symmetric(vertical:8, horizontal:10),
     padding: const EdgeInsets.all(24),
     onPressed:onPressed,
     tonality:(!reco.isActive?

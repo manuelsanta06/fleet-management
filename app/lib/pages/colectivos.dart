@@ -7,6 +7,7 @@ import 'package:agenda/database/app_database.dart';
 import 'package:agenda/utilities/colectivos.dart';
 import 'package:agenda/utilities/settings.dart';
 
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/errorWidgets.dart';
 import 'package:agenda/widgets/searchBar.dart';
 
@@ -124,21 +125,20 @@ class _colectivosPageState extends State<colectivosPage>{
                        (c.number?.toString().contains(searchQuery)?? false);
                         }).toList();
                   if(filtered.isEmpty)return const Center(child:Text("???"));
-                  //filtered.sort((a,b)=>a.number?.compareTo(b.number??999)??1);
 
-                  return ListView.builder(
-                    itemCount: filtered.length,
-                    itemBuilder:(context, index){
+                  return SingleChildScrollView(
+                    padding:const EdgeInsets.only(bottom:80),
+                    child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:filtered.map((item){
                       return colectivoToCard(
-                        context,filtered[index],colectivosPage.mainColor,
+                        context,item,colectivosPage.mainColor,
                         onPressed:()=>Navigator.of(context).push(
                            MaterialPageRoute(builder:(context)=>colectivoInfo(
-                             initialCol:filtered[index],mainColor:colectivosPage.mainColor
+                             initialCol:item,mainColor:colectivosPage.mainColor
                             ))
                          ),
                         onLongPress:null,
                       );
-                    },
+                    }).toList()),
                   );
                 },
               ),

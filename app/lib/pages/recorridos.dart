@@ -7,6 +7,7 @@ import 'package:agenda/pages/recorridoInfo.dart';
 
 import 'package:agenda/utilities/recorridos.dart';
 
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/errorWidgets.dart';
 import 'package:agenda/widgets/searchBar.dart';
 
@@ -50,23 +51,33 @@ class _recorridosPage extends State<recorridosPage>{
             final activos=recorridos.where((r)=>r.isActive).toList();
             final inactivos=recorridos.where((r)=>!r.isActive).toList();
 
-            return ListView( children:[
-              ...activos.map((s)=>recorridoToCard(context,recorridosPage.mainColor,s,(){
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder:(Context)=>recorridoInfo(reco:s,maincolor:recorridosPage.mainColor)
-                ));
-              })),
+            return ListView(
+              padding:const EdgeInsets.only(bottom:80),
+              children:[
+                ResponsiveWrap(
+                  minItemWidth:350.0,
+                  children:activos.map((s)=>recorridoToCard(context,recorridosPage.mainColor,s,(){
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder:(Context)=>recorridoInfo(reco:s,maincolor:recorridosPage.mainColor)
+                    ));
+                  })).toList(),
+                ),
 
-              if(inactivos.isNotEmpty)...[
-                const SizedBox(height: 20),
-                const Center( child: Text("Inactivos / Finalizados",
-                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                )),
-                const SizedBox(height: 10),
-                
-                ...inactivos.map((s)=>recorridoToCard(context,recorridosPage.mainColor,s,(){})),
-              ],
-            ]);
+                if(inactivos.isNotEmpty)...[
+                  const SizedBox(height: 30),
+                  const Center(child: Text("Inactivos / Finalizados",
+                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                  )),
+                  const SizedBox(height: 15),
+                  
+                  ResponsiveWrap(
+                    minItemWidth: 350.0,
+                    children:inactivos.map((s)=>recorridoToCard(context,recorridosPage.mainColor,s,(){
+                    })).toList(),
+                  ),
+                ],
+              ]
+            );
           }
         )),
       ])),

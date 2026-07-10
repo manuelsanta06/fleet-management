@@ -5,6 +5,7 @@ import 'package:agenda/database/app_database.dart';
 
 import 'package:agenda/utilities/choferes.dart';
 
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/searchBar.dart';
 import 'package:agenda/widgets/errorWidgets.dart';
 
@@ -72,18 +73,18 @@ class _peoplePageState extends State<peoplePage>{
                   }).toList();
                 if(filtered.isEmpty)return const Center(child:Text("???"));
 
-                return ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder:(context, index){
+                return SingleChildScrollView(
+                  padding:const EdgeInsets.only(bottom:80),
+                  child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:filtered.map((item){
                     return choferToCard(
-                      context,filtered[index].chofer,peoplePage.mainColor,
-                      debts:filtered[index].debts,
+                      context,item.chofer,peoplePage.mainColor,
+                      debts:item.debts,
                       onPressed:()=>{},
-                      onLongPress:(filtered[index].chofer.is_active)?
-                        ()=>removeChoferDialog(context,filtered[index].chofer,false):
-                        ()=>removeChoferDialog(context,filtered[index].chofer,true)
+                      onLongPress:(item.chofer.is_active)?
+                        ()=>removeChoferDialog(context,item.chofer,false):
+                        ()=>removeChoferDialog(context,item.chofer,true)
                     );
-                  },
+                  }).toList()),
                 );
               },
             ),

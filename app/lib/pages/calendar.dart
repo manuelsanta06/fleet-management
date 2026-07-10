@@ -130,7 +130,7 @@ class _calendarPageState extends State<calendarPage>{
                 if(filtered.isEmpty)return const Center(child:Text("Nada por aca"));
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 80),
+                  padding: const EdgeInsets.only(bottom:80),
                   child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:filtered.map((item){
                     return EventCard(
                       eve:item.event,
