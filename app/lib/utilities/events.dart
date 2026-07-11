@@ -144,7 +144,6 @@ class EventCard extends StatelessWidget{
     else if(eve.state==EventStates.INCOMPLETE)colo=Color.fromARGB(175,255,92,0);
     else if(eve.state==EventStates.DONE)colo=Color.fromARGB(175,0,255,0);
     return Container(
-      margin: const EdgeInsets.symmetric(vertical:8, horizontal:10),
       child:BasicCard(
         tonality: colo,
         padding:const EdgeInsets.all(0),

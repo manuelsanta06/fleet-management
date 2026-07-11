@@ -49,7 +49,6 @@ Widget recorridoToCard(BuildContext context,Color mainColor,Recorrido reco,VoidC
         ),
       ],
     ),
-    //margin: const EdgeInsets.symmetric(vertical:8, horizontal:10),
     padding: const EdgeInsets.all(24),
     onPressed:onPressed,
     tonality:(!reco.isActive?
@@ -61,7 +60,7 @@ Widget recorridoToCard(BuildContext context,Color mainColor,Recorrido reco,VoidC
     child:Column(crossAxisAlignment: CrossAxisAlignment.start,children:[
       Text(reco.name),
       const Text("Valor base",style:TextStyle(color:Colors.grey,fontSize:12)),
-      Text("\$${numberParser(reco.basePrice)}" ,style:TextStyle(color:mainColor))
+      Text("\$${numberParser(reco.basePrice)}",style:TextStyle(color:mainColor))
     ]),
   );
 }

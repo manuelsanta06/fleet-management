@@ -123,7 +123,6 @@ Widget choferToCard(
   VoidCallback? onLongPress,
 }){
   return  Container(
-    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
     child:BasicCard(
       padding:const EdgeInsets.all(14),
       tonality:chofe.is_active&&!busy?null:Colors.red,
@@ -238,7 +237,7 @@ Widget choferToCard(
           )),
         ]),
         if(debts!=null&&debts.isNotEmpty)
-        horizontalDebts(debts:debts),
+        Padding(padding:EdgeInsetsGeometry.only(top:10),child:horizontalDebts(debts:debts)),
       ])
     ),
   );

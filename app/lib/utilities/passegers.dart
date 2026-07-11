@@ -24,7 +24,6 @@ Widget passengerToCard(BuildContext context,
 }){
   onPressed??=()=>showSmartPay(context,mainColor,passengerId:passa.id);
   return BasicCard(
-    margin:const EdgeInsets.symmetric(vertical:10,horizontal:8),
     actionIcon:PopupMenuButton(
       icon:const Icon(Icons.more_vert),
       onSelected:(String result)async{

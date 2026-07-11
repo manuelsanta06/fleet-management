@@ -5,14 +5,15 @@ import 'package:agenda/pages/recorridos.dart';
 
 import 'package:agenda/database/app_database.dart';
 
-import 'package:agenda/widgets/cards.dart';
-import 'package:agenda/widgets/searchBar.dart';
-import 'package:agenda/widgets/text.dart';
+import 'package:agenda/widgets/responsiveWrap.dart';
 import 'package:agenda/widgets/errorWidgets.dart';
+import 'package:agenda/widgets/searchBar.dart';
+import 'package:agenda/widgets/cards.dart';
+import 'package:agenda/widgets/text.dart';
 
 import 'package:agenda/utilities/passegers.dart';
-import 'package:agenda/utilities/events.dart';
 import 'package:agenda/utilities/parsers.dart';
+import 'package:agenda/utilities/events.dart';
 import 'package:agenda/utilities/debts.dart';
 
 
@@ -108,13 +109,13 @@ class _recorridoInfoState extends State<recorridoInfo>{
         final shifts=snapshot.data!;
         //if(shifts.isEmpty)return const Center(child:Text("..."));
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding:const EdgeInsets.symmetric(horizontal:5,vertical:10),
           children:[
-            ...List.generate(shifts.length,(index)=>EventCard(
-              maincolor:widget.maincolor,
-              eve:shifts[index].event,
-              sto:shifts[index].stops,
-            )),
+            ResponsiveWrap(
+              minItemWidth:350.0,
+              children:shifts.map((s)=>EventCard(eve:s.event,sto:s.stops,maincolor:widget.maincolor)).toList()
+            ),
+            SizedBox(height:20),
             Material(
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
@@ -213,7 +214,7 @@ class _recorridoInfoState extends State<recorridoInfo>{
     );
   }
 
-  Widget _buildPasajerosTab(BuildContext context) {
+  Widget _buildPasajerosTab(BuildContext context){
     final db=Provider.of<AppDatabase>(context);
     return Scaffold(
       body:Column(children:[
@@ -230,17 +231,30 @@ class _recorridoInfoState extends State<recorridoInfo>{
                 (s.passenger.managerPhone.toLowerCase().contains(searchQuery))||
                 (s.passenger.managerName.toLowerCase().contains(searchQuery));
             }).toList();
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount:filtered.length+1,
-              itemBuilder:(context,index){
-                if(index==filtered.length){return Material(
+            return ListView(
+              padding:const EdgeInsets.symmetric(horizontal:5,vertical:10),
+              children:[
+                if(filtered.isNotEmpty)
+                ResponsiveWrap(
+                  minItemWidth:350.0,
+                  children:filtered.map((item){
+                    return passengerToCard(
+                      context,
+                      recorridosPage.mainColor,
+                      item.passenger,
+                      widget.reco.id,
+                      debts: item.debts,
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height:20),
+                Material(
                   color: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side:const BorderSide(color:Color(0xFF94A3B8),width:2,),
                   ),
-                  child: InkWell(
+                  child:InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap:()async=>
                       snack(context,(await showCreateModifiPassenger(context,
@@ -258,20 +272,12 @@ class _recorridoInfoState extends State<recorridoInfo>{
                       ),
                     ),
                   ),
-                );}
-                return passengerToCard(
-                  context,
-                  recorridosPage.mainColor,
-                  filtered[index].passenger,
-                  widget.reco.id,
-                  debts:filtered[index].debts,
-                );
-              },
+                ),
+              ],
             );
           },
         ))
       ]),
     );
   }
-
 }

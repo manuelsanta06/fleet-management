@@ -115,7 +115,7 @@ class _homePageState extends State<homePage>{
 
                 return BasicCard(
                   padding:EdgeInsetsGeometry.symmetric(vertical:8,horizontal:0),
-                  child:ResponsiveWrap(spacing:0,runSpacing:0,minItemWidth:350.0,children:fullList.map((item){
+                  child:ResponsiveWrap(minItemWidth:350.0,children:fullList.map((item){
                     return EventCard(
                       eve:item.event,
                       sto:item.stops,

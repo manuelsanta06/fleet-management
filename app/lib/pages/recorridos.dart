@@ -52,7 +52,7 @@ class _recorridosPage extends State<recorridosPage>{
             final inactivos=recorridos.where((r)=>!r.isActive).toList();
 
             return ListView(
-              padding:const EdgeInsets.only(bottom:80),
+              padding:const EdgeInsets.symmetric(horizontal:5,vertical:10),
               children:[
                 ResponsiveWrap(
                   minItemWidth:350.0,

@@ -301,7 +301,6 @@ Widget colectivoToCard(
   VoidCallback? onLongPress,
 }){
   return Container(
-    margin:const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
     child:BasicCard(
       padding:const EdgeInsets.all(14),
       actionIcon:hideOptions?null:PopupMenuButton(
