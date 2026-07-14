@@ -84,13 +84,13 @@ go run main.go
 1. Ensure you have the required environment variables passed during the build (DOMAIN, API_KEY).
 2. Generate the Drift database files:
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build --release --dart-define-from-file=env.json
 
 ```
 
 
 3. Run the application:
 ```bash
-flutter run
+flutter run --dart-define-from-file=env.json
 
 ```
