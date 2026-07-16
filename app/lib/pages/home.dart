@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:agenda/widgets/responsiveWrap.dart';
+import 'package:agenda/widgets/errorWidgets.dart';
+import 'package:agenda/widgets/weather.dart';
 import 'package:agenda/widgets/buttons.dart';
 import 'package:agenda/widgets/cards.dart';
 import 'package:agenda/widgets/text.dart';
-import 'package:agenda/widgets/errorWidgets.dart';
-import 'package:agenda/widgets/weather.dart';
 
-import 'package:agenda/utilities/settings.dart';
-import 'package:agenda/utilities/events.dart';
+import 'package:agenda/utilities/syncService.dart';
+import 'package:agenda/utilities/recorridos.dart';
 import 'package:agenda/utilities/colectivos.dart';
 import 'package:agenda/utilities/choferes.dart';
-import 'package:agenda/utilities/recorridos.dart';
+import 'package:agenda/utilities/settings.dart';
+import 'package:agenda/utilities/events.dart';
 
 
 import 'package:provider/provider.dart';
@@ -42,90 +43,104 @@ class _homePageState extends State<homePage>{
     return Scaffold(
       body:Stack(
         children:[
-          SafeArea(top:false,child:ListView(padding:EdgeInsets.zero,children:[
-            //TOP CARD
-            BasicCard(
-              padding: const EdgeInsets.symmetric(vertical:24),
-              child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                const SizedBox(height:10),
-                Row(children:[
-                  const SizedBox(width:15),
-                  Expanded(child:Text(DateFormat('EEEE, d MMM').format(today))),
-                  GestureDetector(
-                    onHorizontalDragEnd:(details){
-                      if(details.primaryVelocity!<0){
-                        setState((){_showSettings=true;});
-                      }else if(details.primaryVelocity!>0){
-                        setState((){_showSettings=false;});
-                      }
-                    },
-                    child:WeatherWidget(),
+          SafeArea(top:false,child:RefreshIndicator(
+            onRefresh:()async{
+              final db=Provider.of<AppDatabase>(context,listen:false);
+              final result=await SyncService.performFullSync(db);
+              if(context.mounted){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content:Text(result.$1?'Sincronizado':'Error: ${result.$2}'),
+                    backgroundColor:result.$1?Colors.green:Colors.red,
                   ),
-                  AnimatedContainer(
-                    duration:const Duration(milliseconds:200),
-                    width:_showSettings?30.0:0.0,
-                    child:_showSettings?IconButton(icon:Icon(Icons.settings),onPressed:(){
-                      Navigator.of(context).push(MaterialPageRoute(builder:(context)=>PantallaAjustes()));
-                    }):null,
-                  ),
-                  const SizedBox(width:5),
-                ]),
-                const SizedBox(height:10),
-                SingleChildScrollView(scrollDirection:Axis.horizontal,child: StreamBuilder<(int,int)>(
-                  stream:deafDb.watchVtvStatus(),
-                  builder:(context,snapshot){
-                    //return const SizedBox.shrink();
-                    final (vencidas,porVencer)=snapshot.data??(0,0);
-                    if (vencidas+porVencer==0)return const SizedBox.shrink();
-                    return Row(children:[
-                      const SizedBox(width:10),
-                      if(vencidas>0)
-                      pillText("$vencidas VTV${vencidas>1?"s venceiron":"vencida"}",Colors.red,onTap:(){
-                        if(widget.onVtvCheck!=null)widget.onVtvCheck!(4,1);
-                      }),
-                      if(porVencer>0&&vencidas>0)
-                      const SizedBox(width:10),
-                      if(porVencer>0)
-                      pillText("$porVencer VTV${porVencer>1?"s":""} próxima${porVencer>1?"s":""} a vencer",
-                        Colors.orange,onTap:(){
+                );
+              }
+            },
+            child:ListView(padding:EdgeInsets.zero,children:[
+              //TOP CARD
+              BasicCard(
+                padding:const EdgeInsets.symmetric(vertical:24),
+                child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                  const SizedBox(height:10),
+                  Row(children:[
+                    const SizedBox(width:15),
+                    Expanded(child:Text(DateFormat('EEEE, d MMM').format(today))),
+                    GestureDetector(
+                      onHorizontalDragEnd:(details){
+                        if(details.primaryVelocity!<0){
+                          setState((){_showSettings=true;});
+                        }else if(details.primaryVelocity!>0){
+                          setState((){_showSettings=false;});
+                        }
+                      },
+                      child:WeatherWidget(),
+                    ),
+                    AnimatedContainer(
+                      duration:const Duration(milliseconds:200),
+                      width:_showSettings?30.0:0.0,
+                      child:_showSettings?IconButton(icon:Icon(Icons.settings),onPressed:(){
+                        Navigator.of(context).push(MaterialPageRoute(builder:(context)=>PantallaAjustes()));
+                      }):null,
+                    ),
+                    const SizedBox(width:5),
+                  ]),
+                  const SizedBox(height:10),
+                  SingleChildScrollView(scrollDirection:Axis.horizontal,child: StreamBuilder<(int,int)>(
+                    stream:deafDb.watchVtvStatus(),
+                    builder:(context,snapshot){
+                      //return const SizedBox.shrink();
+                      final (vencidas,porVencer)=snapshot.data??(0,0);
+                      if (vencidas+porVencer==0)return const SizedBox.shrink();
+                      return Row(children:[
+                        const SizedBox(width:10),
+                        if(vencidas>0)
+                        pillText("$vencidas VTV${vencidas>1?"s venceiron":"vencida"}",Colors.red,onTap:(){
                           if(widget.onVtvCheck!=null)widget.onVtvCheck!(4,1);
                         }),
-                      const SizedBox(width:10),
-                    ]);
-                  }
-                )),
-              ])
-            ),
-            const SizedBox(height:20),
-            subtitleLine("Viajes hoy",homePage.mainColor),
-            EventFilter(
-              currentFilter:eventsFilter,
-              mainColor:homePage.mainColor,
-              onChanged:(ViewFilter newFilter){
-                setState((){eventsFilter=newFilter;});
-              },
-            ),
-            StreamBuilder<List<EventWithStops>>(
-              stream:deafDb.watchEventsWithStops(DateTime.now(),eventsFilter),
-              builder:(context,snapshot){
-                if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
-                if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
-                final fullList=snapshot.data??[];
-                if(fullList.isEmpty)return const Center(child:Text("Nada por aca"));
+                        if(porVencer>0&&vencidas>0)
+                        const SizedBox(width:10),
+                        if(porVencer>0)
+                        pillText("$porVencer VTV${porVencer>1?"s":""} próxima${porVencer>1?"s":""} a vencer",
+                          Colors.orange,onTap:(){
+                            if(widget.onVtvCheck!=null)widget.onVtvCheck!(4,1);
+                          }),
+                        const SizedBox(width:10),
+                      ]);
+                    }
+                  )),
+                ])
+              ),
+              const SizedBox(height:20),
+              subtitleLine("Viajes hoy",homePage.mainColor),
+              EventFilter(
+                currentFilter:eventsFilter,
+                mainColor:homePage.mainColor,
+                onChanged:(ViewFilter newFilter){
+                  setState((){eventsFilter=newFilter;});
+                },
+              ),
+              StreamBuilder<List<EventWithStops>>(
+                stream:deafDb.watchEventsWithStops(DateTime.now(),eventsFilter),
+                builder:(context,snapshot){
+                  if(snapshot.hasError)return ManuErrorWidget(snapshot:snapshot);
+                  if(!snapshot.hasData)return const Center(child: CircularProgressIndicator());
+                  final fullList=snapshot.data??[];
+                  if(fullList.isEmpty)return const Center(child:Text("Nada por aca"));
 
-                return BasicCard(
-                  padding:EdgeInsetsGeometry.symmetric(vertical:8,horizontal:0),
-                  child:ResponsiveWrap(minItemWidth:350.0,children:fullList.map((item){
-                    return EventCard(
-                      eve:item.event,
-                      sto:item.stops,
-                      maincolor:homePage.mainColor,
-                    );
-                  }).toList()),
-                );
-              },
-            ),
-          ])),
+                  return BasicCard(
+                    padding:EdgeInsetsGeometry.symmetric(vertical:8,horizontal:0),
+                    child:ResponsiveWrap(minItemWidth:350.0,children:fullList.map((item){
+                      return EventCard(
+                        eve:item.event,
+                        sto:item.stops,
+                        maincolor:homePage.mainColor,
+                      );
+                    }).toList()),
+                  );
+                },
+              ),
+            ])
+          )),
           Positioned.fill(
             bottom:16.0,
             right:16.0,
